@@ -1,0 +1,20 @@
+[importlinter]
+root_packages = sweatmeter
+
+[importlinter:contract:no-application-imports]
+name = SweatMeter must not import applications
+type = forbidden
+source_modules = sweatmeter
+forbidden_modules =
+    freeweight
+    loadcoach
+    ideapress
+
+[importlinter:contract:no-sibling-packages]
+name = SweatMeter must not import sibling capability packages
+type = forbidden
+source_modules = sweatmeter
+forbidden_modules =
+    modelrack
+    weightsdb
+    mirrorwall
