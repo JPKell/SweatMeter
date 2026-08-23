@@ -1,5 +1,6 @@
-"""Platform reader interfaces and implemented Linux and NVIDIA readers."""
+"""Platform reader interfaces, implementations, and explicit tier-3 stubs."""
 
+from sweatmeter.readers.darwin import DarwinHostReader
 from sweatmeter.readers.linux import (
     LinuxHostReader,
     parse_cpuinfo,
@@ -18,14 +19,17 @@ from sweatmeter.readers.nvidia import (
     parse_nvidia_csv,
 )
 from sweatmeter.readers.protocols import GpuReader, HostReader
+from sweatmeter.readers.windows import WindowsHostReader
 
 __all__ = [
+    "DarwinHostReader",
     "GpuReader",
     "HostReader",
     "LinuxHostReader",
     "NvidiaSmiReader",
     "ParsedCell",
     "SubprocessRunner",
+    "WindowsHostReader",
     "parse_cpuinfo",
     "parse_diskstats",
     "parse_loadavg",

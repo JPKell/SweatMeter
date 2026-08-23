@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from baseaicore import GpuProfile, Measurement
 
@@ -12,6 +12,7 @@ from sweatmeter.types import DiskThroughput, GpuSample, HostFacts, MemoryReading
 __all__ = ["GpuReader", "HostReader"]
 
 
+@runtime_checkable
 class HostReader(Protocol):
     """Host telemetry surface consumed by the future collector.
 
@@ -39,11 +40,16 @@ class HostReader(Protocol):
         """Return whole-device read and write throughput since the preceding call."""
         ...
 
+    def process_rss_bytes(self) -> Measurement:
+        """Return the current process resident-set size in bytes."""
+        ...
+
     def static_facts(self) -> HostFacts:
         """Return static identity and capacity facts for this host."""
         ...
 
 
+@runtime_checkable
 class GpuReader(Protocol):
     """GPU telemetry surface consumed by the future collector."""
 

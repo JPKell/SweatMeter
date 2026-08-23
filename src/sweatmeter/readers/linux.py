@@ -44,6 +44,7 @@ _DISKSTATS_NAME_INDEX = 2
 _DISKSTATS_MIN_FIELDS = 10
 _DISKSTATS_READ_SECTORS_INDEX = 5
 _DISKSTATS_WRITE_SECTORS_INDEX = 9
+_PROC_STATUS_VALUE_FIELDS = 2
 _MIN_TEMPERATURE_C = -273.15
 _MAX_TEMPERATURE_C = 1000.0
 _WHOLE_DEVICE = re.compile(
@@ -459,6 +460,25 @@ class LinuxHostReader:
         if parsed[1] >= previous[2]:
             write_rate = (parsed[1] - previous[2]) / elapsed
         return DiskThroughput(read_rate, write_rate)
+
+    def process_rss_bytes(self) -> Measurement:
+        """Return this process's current resident-set size from ``/proc/self/status``."""
+        text = _safe(lambda: self._proc_text("self/status"))
+        if not isinstance(text, str):
+            return UNSUPPORTED
+        for line in text.splitlines():
+            key, separator, remainder = line.partition(":")
+            if key != "VmRSS" or not separator:
+                continue
+            fields = remainder.split()
+            if len(fields) != _PROC_STATUS_VALUE_FIELDS or fields[1].casefold() != "kb":
+                return UNSUPPORTED
+            try:
+                rss_kib = int(fields[0])
+            except ValueError:
+                return UNSUPPORTED
+            return rss_kib * _KIB if rss_kib >= 0 else UNSUPPORTED
+        return UNSUPPORTED
 
     def static_facts(self) -> HostFacts:
         """Return static CPU, RAM, OS, runtime, and block-device facts."""
