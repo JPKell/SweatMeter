@@ -18,6 +18,12 @@ from sweatmeter.readers.nvidia import (
     SubprocessRunner,
     parse_nvidia_csv,
 )
+from sweatmeter.readers.nvml import (
+    NvmlBinding,
+    NvmlGpuReader,
+    load_nvml_binding,
+    nvml_binding_available,
+)
 from sweatmeter.readers.protocols import GpuReader, HostReader
 from sweatmeter.readers.windows import WindowsHostReader
 
@@ -27,9 +33,13 @@ __all__ = [
     "HostReader",
     "LinuxHostReader",
     "NvidiaSmiReader",
+    "NvmlBinding",
+    "NvmlGpuReader",
     "ParsedCell",
     "SubprocessRunner",
     "WindowsHostReader",
+    "load_nvml_binding",
+    "nvml_binding_available",
     "parse_cpuinfo",
     "parse_diskstats",
     "parse_loadavg",

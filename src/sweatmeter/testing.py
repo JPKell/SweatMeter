@@ -2,6 +2,10 @@
 
 These doubles are package API, not test-suite helpers: downstream applications can exercise
 admission, telemetry, and energy logic without monkeypatching operating-system readers.
+
+``NullHostReader`` and ``NullGpuReader`` are defined in :mod:`sweatmeter.platform`, because the
+spec's degradation path constructs them in production code, and are re-exported here so the four
+doubles the suite's testing standards name are importable from one module.
 """
 
 from __future__ import annotations
@@ -13,12 +17,15 @@ from typing import cast
 
 from baseaicore import UNSUPPORTED, GpuProfile, GpuVendor, Measurement, ValidationError
 
+from sweatmeter.platform import NullGpuReader, NullHostReader
 from sweatmeter.readers.protocols import GpuReader, HostReader
 from sweatmeter.types import DiskThroughput, GpuSample, HostFacts, MemoryReading
 
 __all__ = [
     "FaultInjectingReader",
     "HostReading",
+    "NullGpuReader",
+    "NullHostReader",
     "ScriptedGpuReader",
     "ScriptedHostReader",
 ]

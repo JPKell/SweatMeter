@@ -283,7 +283,15 @@ def read_thermal_zones(root: Path, *, read_text: TextReader = _read_utf8) -> Mea
     Permission errors, missing files, and malformed individual zones are skipped. Known CPU/package
     zone types take precedence over generic ACPI zones and directory order.
     """
-    candidates: list[tuple[int, str, float]] = []
+    candidates = _thermal_zone_candidates(root, read_text=read_text)
+    return candidates[0][2] if candidates else UNSUPPORTED
+
+
+def _thermal_zone_candidates(
+    root: Path, *, read_text: TextReader
+) -> list[tuple[int, str, float, Path]]:
+    """Return valid thermal-zone readings in deterministic preference order."""
+    candidates: list[tuple[int, str, float, Path]] = []
     for zone in _children(root, "thermal_zone*"):
         zone_type = (_optional_text(zone / "type", read_text) or "").lower()
         temperature = _millidegrees(_optional_text(zone / "temp", read_text))
@@ -293,10 +301,8 @@ def read_thermal_zones(root: Path, *, read_text: TextReader = _read_utf8) -> Mea
             priority = _PREFERRED_THERMAL_ZONE_TYPES.index(zone_type)
         except ValueError:
             priority = len(_PREFERRED_THERMAL_ZONE_TYPES)
-        candidates.append((priority, zone.name, temperature))
-    if not candidates:
-        return UNSUPPORTED
-    return min(candidates)[2]
+        candidates.append((priority, zone.name, temperature, zone / "temp"))
+    return sorted(candidates)
 
 
 def read_hwmon(root: Path, *, read_text: TextReader = _read_utf8) -> Measurement:
@@ -306,7 +312,13 @@ def read_hwmon(root: Path, *, read_text: TextReader = _read_utf8) -> Measurement
     GPU or NVMe drivers are ignored; an unknown driver remains a last-resort candidate because some
     kernel/platform combinations omit ``name``.
     """
-    candidates: list[tuple[int, str, float]] = []
+    candidates = _hwmon_candidates(root, read_text=read_text)
+    return candidates[0][2] if candidates else UNSUPPORTED
+
+
+def _hwmon_candidates(root: Path, *, read_text: TextReader) -> list[tuple[int, str, float, Path]]:
+    """Return valid CPU hwmon readings in deterministic preference order."""
+    candidates: list[tuple[int, str, float, Path]] = []
     for hwmon in _children(root, "hwmon*"):
         driver = (_optional_text(hwmon / "name", read_text) or "").lower()
         if driver in _NON_CPU_HWMON_DRIVERS:
@@ -321,10 +333,8 @@ def read_hwmon(root: Path, *, read_text: TextReader = _read_utf8) -> Measurement
             label = (_optional_text(label_file, read_text) or "").lower()
             cpu_label = any(token in label for token in ("package", "tctl", "tdie", "cpu"))
             priority = 0 if driver in _CPU_HWMON_DRIVERS or cpu_label else 1
-            candidates.append((priority, str(temperature_file), temperature))
-    if not candidates:
-        return UNSUPPORTED
-    return min(candidates)[2]
+            candidates.append((priority, str(temperature_file), temperature, temperature_file))
+    return sorted(candidates)
 
 
 def read_block_devices(
@@ -401,6 +411,7 @@ class LinuxHostReader:
         self._disk_devices = frozenset(disk_devices) if disk_devices is not None else None
         self._previous_cpu: tuple[int, int] | None = None
         self._previous_disk: tuple[float, int, int] | None = None
+        self._temperature_file: Path | None = None
 
     def _proc_text(self, name: str) -> str:
         return self._read_text(self._proc_root / name)
@@ -429,13 +440,29 @@ class LinuxHostReader:
         return _safe(lambda: parse_meminfo(self._proc_text("meminfo")), MemoryReading())
 
     def cpu_temperature(self) -> Measurement:
-        """Read thermal zones first, then fall back to hwmon."""
-        thermal = read_thermal_zones(
+        """Read a cached sensor path, discovering thermal-zone then hwmon candidates as needed.
+
+        Sensor discovery traverses ``/sys`` and is materially slower than reading one pseudo-file.
+        Paths are stable for a reader's lifetime, so the preferred valid source is cached. If it
+        disappears or becomes malformed, the next call discards it and performs discovery again.
+        """
+        if self._temperature_file is not None:
+            temperature = _millidegrees(_optional_text(self._temperature_file, self._read_text))
+            if temperature is not None:
+                return temperature
+            self._temperature_file = None
+
+        thermal = _thermal_zone_candidates(
             self._sys_root / "class" / "thermal", read_text=self._read_text
         )
-        if is_supported(thermal):
-            return thermal
-        return read_hwmon(self._sys_root / "class" / "hwmon", read_text=self._read_text)
+        if thermal:
+            self._temperature_file = thermal[0][3]
+            return thermal[0][2]
+        hwmon = _hwmon_candidates(self._sys_root / "class" / "hwmon", read_text=self._read_text)
+        if hwmon:
+            self._temperature_file = hwmon[0][3]
+            return hwmon[0][2]
+        return UNSUPPORTED
 
     def disk_throughput(self) -> DiskThroughput:
         """Return disk rates since the preceding valid counter sample."""

@@ -7,6 +7,7 @@ import time
 from collections.abc import Callable, Sequence
 from datetime import UTC, datetime, timedelta
 from itertools import pairwise
+from typing import cast
 
 import pytest
 from baseaicore import ValidationError
@@ -98,6 +99,57 @@ def test_sampler_follows_interval_without_bursting() -> None:
 
     assert len(intervals) >= 3
     assert all(0.012 <= interval <= 0.06 for interval in intervals[:3])
+
+
+def test_sampler_skips_missed_deadlines_instead_of_bursting_catch_up_samples() -> None:
+    interval = 0.02
+    clock = FakeMonotonicClock(1_000.0)
+    starts: list[float] = []
+    enough_samples = threading.Event()
+
+    def lag_behind(_snapshot: TelemetrySnapshot) -> None:
+        starts.append(time.monotonic())
+        # Simulate a collection that overran ten deadlines while the worker was busy.
+        clock.advance(interval * 10)
+        if len(starts) == 4:
+            enough_samples.set()
+
+    sampler = TelemetrySampler(
+        SequenceCollector(),
+        interval_seconds=interval,
+        on_sample=lag_behind,
+        monotonic_clock=clock,
+    )
+
+    sampler.start()
+    assert enough_samples.wait(2.0)
+    sampler.stop(timeout=1.0)
+    intervals = [later - earlier for earlier, later in pairwise(starts)]
+
+    assert len(intervals) >= 3
+    assert all(gap >= interval / 2 for gap in intervals), intervals
+
+
+def test_sampler_falls_back_when_the_injected_monotonic_clock_is_invalid() -> None:
+    def broken_clock() -> float:
+        return cast(float, "not-a-duration")
+
+    sampled = threading.Event()
+    sampler = TelemetrySampler(
+        SequenceCollector(),
+        interval_seconds=0.005,
+        on_sample=lambda _snapshot: sampled.set(),
+        monotonic_clock=broken_clock,
+    )
+
+    sampler.start()
+    assert sampled.wait(1.0)
+    sampler.stop(timeout=1.0)
+    age = sampler.latest_age_seconds()
+
+    assert sampler.latest() is not None
+    assert age is not None
+    assert age >= 0.0
 
 
 def test_raising_callback_does_not_kill_worker() -> None:

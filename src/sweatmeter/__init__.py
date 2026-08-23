@@ -1,7 +1,7 @@
 """Honest, injectable host and NVIDIA telemetry for the Local AI Suite.
 
 The public surface includes platform readers, complete non-raising snapshots, static machine
-profiles, and bounded background sampling. Derived windows arrive in the next development phase.
+profiles, bounded background sampling, and per-device derived telemetry windows.
 """
 
 from sweatmeter.__about__ import __version__
@@ -19,9 +19,13 @@ from sweatmeter.readers import (
     HostReader,
     LinuxHostReader,
     NvidiaSmiReader,
+    NvmlBinding,
+    NvmlGpuReader,
     ParsedCell,
     SubprocessRunner,
     WindowsHostReader,
+    load_nvml_binding,
+    nvml_binding_available,
     parse_cpuinfo,
     parse_diskstats,
     parse_loadavg,
@@ -41,6 +45,7 @@ from sweatmeter.types import (
     ReportedText,
     TelemetrySnapshot,
 )
+from sweatmeter.window import TelemetryWindow, ThrottleState, ThrottleVerdict, WindowMetric
 
 __all__ = [
     "DarwinHostReader",
@@ -55,16 +60,24 @@ __all__ = [
     "NullGpuReader",
     "NullHostReader",
     "NvidiaSmiReader",
+    "NvmlBinding",
+    "NvmlGpuReader",
     "ParsedCell",
     "ReportedText",
     "SubprocessRunner",
     "TelemetryCollector",
     "TelemetrySampler",
     "TelemetrySnapshot",
+    "TelemetryWindow",
+    "ThrottleState",
+    "ThrottleVerdict",
+    "WindowMetric",
     "WindowsHostReader",
     "__version__",
     "create_gpu_reader",
     "create_host_reader",
+    "load_nvml_binding",
+    "nvml_binding_available",
     "parse_cpuinfo",
     "parse_diskstats",
     "parse_loadavg",

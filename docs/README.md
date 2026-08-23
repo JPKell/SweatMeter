@@ -17,6 +17,9 @@ a copied document (`../../adr/...`, `../../standards/...`) resolves correctly he
 1. **This component's own specification**, in order:
 - [development-plan.md](packages/sweatmeter/development-plan.md)
 - [spec.md](packages/sweatmeter/spec.md)
+- [quickstart.md](quickstart.md)
+- [platform-support.md](platform-support.md)
+- [performance-validation.md](performance-validation.md)
 2. **Standards it must follow** — [standards/](standards/), particularly `coding-standards.md`,
    `testing-standards.md`, `security-standards.md`, `api-and-contract-standards.md` and
    `configuration-standards.md`.
@@ -38,9 +41,9 @@ a copied document (`../../adr/...`, `../../standards/...`) resolves correctly he
 ### Suite-wide standards (13 files)
 Every file in [standards/](standards/) — these apply to all nine repositories identically.
 
-### Architecture Decision Records (30 files)
+### Architecture Decision Records (31 files)
 The complete ADR set in [adr/](adr/README.md), including the eight added by the post-freeze audit
-(0022–0029) and the seven amended by it. A component only *acts on* the ADRs its own spec and
+(0022–0029), the seven amended by it, and ADR-0030 on model cost and pricing. A component only *acts on* the ADRs its own spec and
 development plan reference, but the full set is included because ADRs cross-reference each other and
 a partial set would have dangling links.
 
@@ -75,10 +78,9 @@ finding that motivated it.
   the central `ai-suite-docs` repository has the full set.
 * Other packages' development plans (only their `spec.md` is included, when this component depends on
   them) — the *contract* is what matters to a consumer, not how the package's own team builds it.
-* Generated deliverables this component will produce later in its own hardening phase — a
-  configuration reference, an OpenAPI snapshot, a quickstart guide, a troubleshooting guide. Those are
-  authored *by this repository* during its own development plan and will live directly under `docs/`
-  (e.g. `docs/quickstart.md`) alongside — not inside — the copied material above.
+* Repository-authored deliverables live directly under `docs/`, alongside rather than inside the
+  curated tree. Phase 4 provides the quickstart, platform-support matrix, and recorded performance
+  validation linked above.
 
 ## Keeping this in sync
 

@@ -7,7 +7,12 @@ from pathlib import Path
 from typing import cast
 
 import pytest
-from baseaicore import UNSUPPORTED, UnsupportedPlatformError, ValidationError
+from baseaicore import (
+    UNSUPPORTED,
+    DependencyUnavailableError,
+    UnsupportedPlatformError,
+    ValidationError,
+)
 
 import sweatmeter
 from sweatmeter import (
@@ -18,10 +23,13 @@ from sweatmeter import (
     NullGpuReader,
     NullHostReader,
     NvidiaSmiReader,
+    NvmlGpuReader,
     WindowsHostReader,
     create_gpu_reader,
     create_host_reader,
+    nvml_binding_available,
 )
+from sweatmeter import platform as platform_module
 
 
 @pytest.mark.parametrize(
@@ -38,6 +46,7 @@ def test_host_factory_selects_every_documented_platform_branch(
     assert isinstance(create_host_reader(platform_name=platform_name), expected_type)
 
 
+@pytest.mark.linux_only
 def test_host_factory_uses_running_platform_by_default() -> None:
     assert isinstance(create_host_reader(), LinuxHostReader)
 
@@ -49,9 +58,49 @@ def test_host_factory_rejects_unknown_platform_with_degradation_guidance() -> No
     assert raised.value.details == {"platform": "plan9", "feature": "host telemetry"}
 
 
-def test_gpu_factory_returns_nvidia_backend_without_probing_hardware() -> None:
-    assert isinstance(create_gpu_reader(), NvidiaSmiReader)
+def test_gpu_factory_honours_an_explicit_backend_without_probing_hardware() -> None:
     assert isinstance(create_gpu_reader(prefer=GpuBackend.NVIDIA_SMI), NvidiaSmiReader)
+
+
+def test_gpu_factory_default_follows_optional_binding_availability() -> None:
+    expected = NvmlGpuReader if nvml_binding_available() else NvidiaSmiReader
+
+    assert isinstance(create_gpu_reader(), expected)
+
+
+def test_gpu_factory_prefers_nvml_when_the_extra_is_installed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Simulating presence/absence of an installed distribution is a boundary condition; the
+    # alternative would be uninstalling a package inside a test run.
+    monkeypatch.setattr(platform_module, "nvml_binding_available", lambda: True)
+
+    assert isinstance(create_gpu_reader(), NvmlGpuReader)
+
+
+def test_gpu_factory_falls_back_to_the_command_backend_without_the_extra(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(platform_module, "nvml_binding_available", lambda: False)
+
+    assert isinstance(create_gpu_reader(), NvidiaSmiReader)
+
+
+def test_explicitly_requested_nvml_backend_is_honoured_when_the_extra_is_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(platform_module, "nvml_binding_available", lambda: True)
+
+    assert isinstance(create_gpu_reader(prefer=GpuBackend.PYNVML), NvmlGpuReader)
+
+
+def test_explicitly_requested_nvml_backend_is_refused_when_the_extra_is_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(platform_module, "nvml_binding_available", lambda: False)
+
+    with pytest.raises(DependencyUnavailableError, match="sweatmeter\\[pynvml\\]"):
+        create_gpu_reader(prefer=GpuBackend.PYNVML)
 
 
 def test_gpu_factory_rejects_runtime_value_outside_backend_enum() -> None:

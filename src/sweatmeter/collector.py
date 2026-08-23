@@ -140,13 +140,15 @@ class TelemetryCollector:
             entry in both the snapshot's and collector's diagnostic mapping.
         """
         with self._lock:
-            emergency = TelemetrySnapshot(
-                timestamp=_fallback_timestamp(),
-                _reasons=(("snapshot", "collector_error"),),
+            collected = _safe(self._snapshot, _READ_FAILURE)
+            snapshot = (
+                collected
+                if isinstance(collected, TelemetrySnapshot)
+                else TelemetrySnapshot(
+                    timestamp=_fallback_timestamp(),
+                    _reasons=(("snapshot", "collector_error"),),
+                )
             )
-            snapshot = _safe(self._snapshot, emergency)
-            if not isinstance(snapshot, TelemetrySnapshot):
-                snapshot = emergency
             self._reasons = dict(snapshot.unavailable_reasons())
             return snapshot
 
@@ -159,14 +161,16 @@ class TelemetryCollector:
 
         Returns:
             One immutable profile carrying its fingerprint and observation time. Failed fields use
-            BaseAiCore's explicit unsupported representation and are recorded in diagnostics.
+            BaseAiCore's explicit unsupported representation and are recorded in diagnostics. An
+            internal assembly failure yields the all-unsupported profile and the single diagnostic
+            ``machine_profile: collector_error``, so a caller can tell a wholly failed collection
+            from a machine that merely reports little about itself.
         """
         with self._lock:
-            emergency = self._emergency_profile()
-            profile = _safe(self._machine_profile, emergency)
+            profile = _safe(self._machine_profile, _READ_FAILURE)
             if not isinstance(profile, MachineProfile):
                 self._reasons = {"machine_profile": "collector_error"}
-                return emergency
+                return self._emergency_profile()
             return profile
 
     def _read[T, D](

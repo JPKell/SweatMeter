@@ -369,6 +369,29 @@ def test_linux_reader_returns_thermal_zone_without_consulting_hwmon(
     assert reader.cpu_temperature() == 55.5
 
 
+def test_linux_reader_caches_sensor_path_and_rediscovers_after_invalid_read(
+    tmp_path: Path,
+) -> None:
+    zone = tmp_path / "class" / "thermal" / "thermal_zone0"
+    zone.mkdir(parents=True)
+    temperatures = iter(["50000", "51000", "broken", "52000"])
+    reads: list[str] = []
+
+    def scripted_read(path: Path) -> str:
+        reads.append(path.name)
+        if path.name == "type":
+            return "x86_pkg_temp"
+        return next(temperatures)
+
+    reader = LinuxHostReader(sys_root=tmp_path, read_text=scripted_read)
+
+    assert reader.cpu_temperature() == 50.0
+    assert reader.cpu_temperature() == 51.0
+    assert reader.cpu_temperature() == 52.0
+    assert reads.count("type") == 2
+    assert reads.count("temp") == 4
+
+
 def test_read_block_devices_normalizes_attributes_and_filters_virtuals(
     telemetry_fixtures: Path,
 ) -> None:
@@ -450,7 +473,9 @@ def test_safe_returns_default_and_logs_debug(caplog: pytest.LogCaptureFixture) -
         result = _safe(fail, -1)
 
     assert result == -1
-    assert "Telemetry source failed" in caplog.text
+    record = caplog.records[0]
+    assert record.getMessage() == "telemetry.source_failed"
+    assert getattr(record, "operation", None) == fail.__qualname__
     assert "fixture denied" in caplog.text
 
 

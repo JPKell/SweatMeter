@@ -329,13 +329,24 @@ class NvidiaSmiReader:
         try:
             executable = self._resolver(self._executable)
         except PermissionError:
-            _LOGGER.debug("NVIDIA executable resolution was denied", exc_info=True)
+            _LOGGER.debug(
+                "telemetry.nvidia.resolve_denied",
+                extra={"executable": self._executable},
+                exc_info=True,
+            )
             return (None, "permission_denied")
         except OSError:
-            _LOGGER.debug("NVIDIA executable resolution failed", exc_info=True)
+            _LOGGER.debug(
+                "telemetry.nvidia.resolve_failed",
+                extra={"executable": self._executable},
+                exc_info=True,
+            )
             return (None, "nvidia_smi_not_found")
         if not executable:
-            _LOGGER.debug("NVIDIA telemetry unavailable: %s was not found", self._executable)
+            _LOGGER.debug(
+                "telemetry.nvidia.executable_not_found",
+                extra={"executable": self._executable},
+            )
             return (None, "nvidia_smi_not_found")
 
         command = [executable, *arguments]
@@ -351,24 +362,46 @@ class NvidiaSmiReader:
                 timeout=self._timeout_seconds,
             )
         except subprocess.TimeoutExpired:
-            _LOGGER.debug("NVIDIA telemetry command timed out", exc_info=True)
+            _LOGGER.debug(
+                "telemetry.nvidia.command_timeout",
+                extra={"timeout_seconds": self._timeout_seconds},
+                exc_info=True,
+            )
             return (None, "nvidia_smi_timeout")
         except FileNotFoundError:
-            _LOGGER.debug("NVIDIA telemetry executable disappeared", exc_info=True)
+            _LOGGER.debug(
+                "telemetry.nvidia.executable_disappeared",
+                extra={"executable": self._executable},
+                exc_info=True,
+            )
             return (None, "nvidia_smi_not_found")
         except PermissionError:
-            _LOGGER.debug("NVIDIA telemetry command was denied", exc_info=True)
+            _LOGGER.debug(
+                "telemetry.nvidia.command_denied",
+                extra={"executable": self._executable},
+                exc_info=True,
+            )
             return (None, "permission_denied")
         except (OSError, subprocess.SubprocessError):
-            _LOGGER.debug("NVIDIA telemetry command could not run", exc_info=True)
+            _LOGGER.debug(
+                "telemetry.nvidia.command_unavailable",
+                extra={"executable": self._executable},
+                exc_info=True,
+            )
             return (None, "nvidia_smi_unavailable")
 
         if completed.returncode != 0:
-            _LOGGER.debug("NVIDIA telemetry command exited %d", completed.returncode)
+            _LOGGER.debug(
+                "telemetry.nvidia.command_failed",
+                extra={"returncode": completed.returncode},
+            )
             return (None, "nvidia_smi_failed")
         output = completed.stdout or ""
         if len(output.encode("utf-8", errors="replace")) > self._max_output_bytes:
-            _LOGGER.debug("NVIDIA telemetry output exceeded %d bytes", self._max_output_bytes)
+            _LOGGER.debug(
+                "telemetry.nvidia.output_too_large",
+                extra={"max_output_bytes": self._max_output_bytes},
+            )
             return (None, "nvidia_smi_output_too_large")
         return (output, None)
 

@@ -2,13 +2,16 @@
 
 **Sequence position:** fourth component. Depends on BaseAiCore Phase 4 (machine types) — can be built
 in parallel with ModelRack.
-**Target:** `sweatmeter 0.3.0` by the end of Phase 4.
+**Target:** `sweatmeter 0.3.0` by the end of Phase 4. Met as code; `0.3.0` was never published,
+because the NVML backend ([ADR-0021](../../adr/0021-telemetry-collection-strategy.md) §7) landed
+before it reached the index, so the first published release is **`0.4.0`**.
 
 ---
 
 ## Phase 1 — Linux host readers
 
-**Goal:** CPU, RAM, load, disk throughput and CPU temperature are read from `/proc` and `/sys`, with every parser tested from fixture text.
+**Goal:** CPU, RAM, load, disk throughput and CPU temperature are read from `/proc` and `/sys`, with
+every parser tested from fixture text.
 
 **Prerequisites:** `baseaicore>=0.4,<0.5`.
 
@@ -165,7 +168,7 @@ with measured overhead, and the package ships.
   `max_temperature_c`, `suspected_throttling`, `sample_count`. Every method returns `UNSUPPORTED`
   when its inputs are unavailable, and reports the number of supported samples it used.
 * Performance tests for every budget, including the throughput-distortion measurement.
-* README, quickstart, `docs/platform-support.md`; publish `sweatmeter 0.3.0`.
+* README, quickstart, `docs/platform-support.md`; publish the package (shipped as `0.4.0`).
 
 **Files/subsystems**
 ```text
@@ -193,7 +196,10 @@ docs/{quickstart.md,platform-support.md}
 1. Every §20 criterion in the [spec](spec.md) is met.
 2. Energy is labelled an estimate everywhere it appears, including in docstrings.
 3. Performance budgets met and recorded.
-4. `sweatmeter 0.3.0` published and usable standalone.
+4. The package is published and usable standalone. Shipped as `0.4.0` rather than `0.3.0`: the
+   criterion is that a published version installs and works on its own, and publishing a
+   superseded `0.3.0` first would have put a version with a known budget miss and an
+   unreachable diagnostic into the compatibility matrix permanently.
 
 **Known risks:** the throttle heuristic producing false positives. Mitigated by returning a verdict
 with a reason and a confidence, never a bare boolean, and by documenting it as a heuristic.
@@ -201,5 +207,6 @@ with a reason and a confidence, never a bare boolean, and by documenting it as a
 interval instead of real timestamps for energy.
 **Gold standards:** graceful degradation proven by fault injection; measured, bounded overhead;
 honest estimates; zero dependencies; ≥ 95 % coverage.
-**Deferred:** other GPU vendors, Windows/macOS host readers, `pynvml` default, per-process GPU
-attribution, RAPL.
+**Deferred:** other GPU vendors, Windows/macOS host readers, per-process GPU attribution, RAPL.
+The `pynvml` backend was *not* deferred in the end: it shipped in `0.4.0` as the automatically
+selected reader wherever the optional extra is installed.

@@ -13,6 +13,7 @@ from enum import StrEnum
 
 from baseaicore import (
     UNSUPPORTED,
+    DependencyUnavailableError,
     GpuProfile,
     Measurement,
     UnsupportedPlatformError,
@@ -22,6 +23,7 @@ from baseaicore import (
 from sweatmeter.readers.darwin import DarwinHostReader
 from sweatmeter.readers.linux import LinuxHostReader
 from sweatmeter.readers.nvidia import NvidiaSmiReader
+from sweatmeter.readers.nvml import NvmlGpuReader, nvml_binding_available
 from sweatmeter.readers.protocols import GpuReader, HostReader
 from sweatmeter.readers.windows import WindowsHostReader
 from sweatmeter.types import DiskThroughput, GpuSample, HostFacts, MemoryReading
@@ -61,11 +63,15 @@ _HOST_STATIC_FIELDS = (
 class GpuBackend(StrEnum):
     """GPU collection backend selectable by :func:`create_gpu_reader`.
 
-    NVIDIA's bounded command interface is the only Phase 3 backend. Naming it now makes later
-    backends additive instead of changing the factory contract.
+    Both members read the same NVIDIA devices and produce identical value types; they differ in how
+    they reach the driver. ``NVIDIA_SMI`` runs the bounded command and is always available wherever
+    a driver is. ``PYNVML`` calls NVML in-process and needs the optional extra, which removes the
+    per-sample process cost that sets the practical floor on sampling interval
+    ([ADR-0021](../../docs/adr/0021-telemetry-collection-strategy.md) §7).
     """
 
     NVIDIA_SMI = "nvidia-smi"
+    PYNVML = "pynvml"
 
 
 class NullHostReader:
@@ -197,21 +203,38 @@ def create_host_reader(*, platform_name: str | None = None) -> HostReader:
 def create_gpu_reader(*, prefer: GpuBackend | None = None) -> GpuReader:
     """Return the requested GPU reader without probing hardware during construction.
 
-    Availability remains a live reader operation: an absent or failing ``nvidia-smi`` degrades on
-    every call and is retried on the next one.
+    ``None`` selects NVML when the optional ``pynvml`` extra is importable and the bounded
+    ``nvidia-smi`` command otherwise, so installing the extra is the whole of what it takes to stop
+    paying a process per sample. The choice inspects the import system only; it does not load NVML
+    and does not touch a device, and availability remains a live reader operation either way — an
+    absent or failing backend degrades on every call and is retried on the next one.
 
     Args:
-        prefer: Backend preference. ``None`` selects Phase 3's NVIDIA command backend.
+        prefer: Backend preference, or ``None`` to select the best available one.
 
     Returns:
         A freshly configured GPU reader.
 
     Raises:
+        DependencyUnavailableError: If ``PYNVML`` is requested explicitly but the extra is absent.
+            An explicit request is answered honestly rather than silently downgraded, because a
+            caller who names a backend is usually measuring the difference between them.
         ValidationError: If a value outside the supported backend enum is supplied at runtime.
     """
-    if prefer is None or prefer is GpuBackend.NVIDIA_SMI:
+    if prefer is None:
+        return NvmlGpuReader() if nvml_binding_available() else NvidiaSmiReader()
+    if prefer is GpuBackend.NVIDIA_SMI:
         return NvidiaSmiReader()
+    if prefer is GpuBackend.PYNVML:
+        if not nvml_binding_available():
+            raise DependencyUnavailableError(
+                "The pynvml GPU backend was requested but the optional extra is not installed; "
+                "install 'sweatmeter[pynvml]' or omit `prefer` to fall back to nvidia-smi.",
+                details={"dependency": "pynvml", "field": "prefer"},
+            )
+        return NvmlGpuReader()
     raise ValidationError(
-        f"Unsupported GPU backend {prefer!r}; expected {GpuBackend.NVIDIA_SMI.value!r}.",
+        f"Unsupported GPU backend {prefer!r}; expected one of "
+        f"{[backend.value for backend in GpuBackend]!r}.",
         details={"field": "prefer", "value": str(prefer)},
     )
