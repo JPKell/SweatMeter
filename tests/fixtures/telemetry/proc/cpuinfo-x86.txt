@@ -1,0 +1,19 @@
+processor   : 0
+model name  : Dual Socket Test CPU
+physical id : 0
+core id     : 0
+
+processor   : 1
+model name  : Dual Socket Test CPU
+physical id : 0
+core id     : 0
+
+processor   : 2
+model name  : Dual Socket Test CPU
+physical id : 1
+core id     : 0
+
+processor   : 3
+model name  : Dual Socket Test CPU
+physical id : 1
+core id     : 1

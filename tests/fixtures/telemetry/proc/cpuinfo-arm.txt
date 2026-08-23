@@ -1,0 +1,8 @@
+processor   : 0
+BogoMIPS    : 108.00
+
+processor   : 1
+BogoMIPS    : 108.00
+
+Hardware    : BCM2711
+Revision    : c03114

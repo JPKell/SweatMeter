@@ -42,6 +42,7 @@ nosetests.xml
 .dmypy.json
 dmypy.json
 .ruff_cache/
+.import_linter_cache/
 .pytype/
 
 # ---- Virtual environments ----

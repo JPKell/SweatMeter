@@ -1,1 +1,3 @@
-__version__ = "0.3.0"
+"""Package version, single-sourced by Hatchling."""
+
+__version__ = "0.1.0"

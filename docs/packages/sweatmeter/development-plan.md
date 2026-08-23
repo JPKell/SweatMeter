@@ -8,8 +8,7 @@ in parallel with ModelRack.
 
 ## Phase 1 — Linux host readers
 
-**Goal:** CPU, RAM, load, disk throughput and CPU temperature are read from `/proc` and `/sys`, with
-every parser tested from fixture text.
+**Goal:** CPU, RAM, load, disk throughput and CPU temperature are read from `/proc` and `/sys`, with every parser tested from fixture text.
 
 **Prerequisites:** `baseaicore>=0.4,<0.5`.
 

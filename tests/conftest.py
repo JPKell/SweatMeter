@@ -1,4 +1,11 @@
-"""Shared pytest fixtures: deterministic clock, temp XDG roots, socket guard.
+"""Shared fixtures for portable SweatMeter tests."""
 
-TODO: implement per docs/standards/testing-standards.md — see also docs/packages/sweatmeter/development-plan.md Phase 1.
-"""
+from pathlib import Path
+
+import pytest
+
+
+@pytest.fixture
+def telemetry_fixtures() -> Path:
+    """Return the root of captured, platform-independent kernel-data fixtures."""
+    return Path(__file__).parent / "fixtures" / "telemetry"
