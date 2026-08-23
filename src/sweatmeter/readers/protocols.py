@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol
 
-from baseaicore import Measurement
+from baseaicore import GpuProfile, Measurement
 
-from sweatmeter.types import DiskThroughput, HostFacts, MemoryReading
+from sweatmeter.types import DiskThroughput, GpuSample, HostFacts, MemoryReading
 
-__all__ = ["HostReader"]
+__all__ = ["GpuReader", "HostReader"]
 
 
 class HostReader(Protocol):
@@ -40,4 +41,20 @@ class HostReader(Protocol):
 
     def static_facts(self) -> HostFacts:
         """Return static identity and capacity facts for this host."""
+        ...
+
+
+class GpuReader(Protocol):
+    """GPU telemetry surface consumed by the future collector."""
+
+    def available(self) -> bool:
+        """Return whether at least one GPU can be queried now."""
+        ...
+
+    def sample(self) -> Sequence[GpuSample]:
+        """Return one live sample for every visible GPU."""
+        ...
+
+    def static_info(self) -> Sequence[GpuProfile]:
+        """Return static identity and capacity information for every visible GPU."""
         ...

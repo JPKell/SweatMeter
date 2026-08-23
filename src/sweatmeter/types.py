@@ -15,7 +15,7 @@ from baseaicore import UNSUPPORTED, Measurement, StorageDevice, Unsupported
 type ReportedText = str | Unsupported
 """Text reported by the operating system, or ``UNSUPPORTED`` when it could not be read."""
 
-__all__ = ["DiskThroughput", "HostFacts", "MemoryReading", "ReportedText"]
+__all__ = ["DiskThroughput", "GpuSample", "HostFacts", "MemoryReading", "ReportedText"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -41,6 +41,32 @@ class DiskThroughput:
 
     read_bytes_per_sec: Measurement = UNSUPPORTED
     write_bytes_per_sec: Measurement = UNSUPPORTED
+
+
+@dataclass(frozen=True, slots=True)
+class GpuSample:
+    """One live, per-device GPU telemetry reading in normalized units.
+
+    The empty ``throttle_reasons`` tuple has two meanings: no queried reason is active, or the
+    driver could not report reasons. ``throttle_reasons_available`` distinguishes those states.
+    Static identity beyond ``uuid`` belongs in BaseAiCore's ``GpuProfile``, not this live value.
+    """
+
+    index: int
+    uuid: str | None = None
+    utilization_percent: Measurement = UNSUPPORTED
+    memory_utilization_percent: Measurement = UNSUPPORTED
+    vram_used_bytes: Measurement = UNSUPPORTED
+    vram_total_bytes: Measurement = UNSUPPORTED
+    temperature_c: Measurement = UNSUPPORTED
+    memory_temperature_c: Measurement = UNSUPPORTED
+    power_watts: Measurement = UNSUPPORTED
+    power_limit_watts: Measurement = UNSUPPORTED
+    fan_percent: Measurement = UNSUPPORTED
+    core_clock_mhz: Measurement = UNSUPPORTED
+    memory_clock_mhz: Measurement = UNSUPPORTED
+    throttle_reasons: tuple[str, ...] = ()
+    throttle_reasons_available: bool = False
 
 
 @dataclass(frozen=True, slots=True)
