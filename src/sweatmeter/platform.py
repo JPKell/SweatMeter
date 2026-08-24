@@ -67,7 +67,7 @@ class GpuBackend(StrEnum):
     they reach the driver. ``NVIDIA_SMI`` runs the bounded command and is always available wherever
     a driver is. ``PYNVML`` calls NVML in-process and needs the optional extra, which removes the
     per-sample process cost that sets the practical floor on sampling interval
-    ([ADR-0021](../../docs/adr/0021-telemetry-collection-strategy.md) §7).
+    (ADR-0021 §7).
     """
 
     NVIDIA_SMI = "nvidia-smi"

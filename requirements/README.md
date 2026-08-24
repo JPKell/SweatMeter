@@ -1,8 +1,8 @@
 # Lockfiles
 
 Exact, hash-verified pins for this repository's **own** CI and release pipeline, required by
-[Packaging and Release Standards §4](../docs/standards/packaging-and-release-standards.md) and
-[Security Standards §11](../docs/standards/security-standards.md).
+Packaging and Release Standards §4 and
+Security Standards §11.
 
 | File | Contents | Used by |
 |---|---|---|

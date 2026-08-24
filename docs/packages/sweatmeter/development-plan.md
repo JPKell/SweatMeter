@@ -3,7 +3,7 @@
 **Sequence position:** fourth component. Depends on BaseAiCore Phase 4 (machine types) — can be built
 in parallel with ModelRack.
 **Target:** `sweatmeter 0.3.0` by the end of Phase 4. Met as code; `0.3.0` was never published,
-because the NVML backend ([ADR-0021](../../adr/0021-telemetry-collection-strategy.md) §7) landed
+because the NVML backend (ADR-0021 §7) landed
 before it reached the index, so the first published release is **`0.4.0`**.
 
 ---
@@ -168,7 +168,7 @@ with measured overhead, and the package ships.
   `max_temperature_c`, `suspected_throttling`, `sample_count`. Every method returns `UNSUPPORTED`
   when its inputs are unavailable, and reports the number of supported samples it used.
 * Performance tests for every budget, including the throughput-distortion measurement.
-* README, quickstart, `docs/platform-support.md`; publish the package (shipped as `0.4.0`).
+* README and quickstart; publish the package (shipped as `0.4.0`).
 
 **Files/subsystems**
 ```text
@@ -176,13 +176,13 @@ src/sweatmeter/window.py
 tests/unit/test_window.py
 tests/performance/test_overhead.py
 tests/live/test_real_machine.py         # marked
-docs/{quickstart.md,platform-support.md}
+docs/quickstart.md
 ```
 
 **Tests**
 * Energy integration against a known power/time series with a hand-computed expected value, **per
   device**; a two-GPU window yields two figures and no total, because a summed watt-hour describes no
-  hardware that exists ([ADR-0027](../../adr/0027-multi-gpu-semantics.md)).
+  hardware that exists (ADR-0027).
 * Irregular sample intervals integrated correctly (dt from timestamps).
 * Windows with some `UNSUPPORTED` samples: statistics computed from supported samples only, with the
   count reported; all-unsupported ⇒ `UNSUPPORTED`, never 0.

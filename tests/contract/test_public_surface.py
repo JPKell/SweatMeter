@@ -49,11 +49,7 @@ def test_distribution_contains_typing_marker() -> None:
 
 
 def test_phase_four_user_documentation_is_present() -> None:
-    for relative_path in (
-        "docs/quickstart.md",
-        "docs/platform-support.md",
-        "docs/performance-validation.md",
-    ):
+    for relative_path in ("docs/quickstart.md",):
         content = (_ROOT / relative_path).read_text(encoding="utf-8")
         assert content.startswith("# "), relative_path
         assert "TODO" not in content, relative_path

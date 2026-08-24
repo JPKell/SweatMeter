@@ -6,8 +6,7 @@ CPU/RAM/GPU/VRAM/thermal/power telemetry and static machine profiling; degrades 
 non-raising snapshots, stable machine profiles, bounded background sampling, per-device window
 statistics, telemetry-derived energy estimates, and explained throttling verdicts are available.
 
-Part of the **Local AI Suite** — see [docs/architecture/executive-summary.md](docs/architecture/executive-summary.md)
-for how SweatMeter fits with the suite's other applications and packages.
+Part of the **Local AI Suite**.
 
 ## Install
 
@@ -58,19 +57,13 @@ aggregates devices: each GPU figure takes a `gpu_index` and describes only that 
 
 ## Documentation
 
-This repository carries its own copy of the relevant suite documentation under [`docs/`](docs/README.md),
-so it can be read and implemented independently of the other eight suite repositories. Start with
-[`docs/README.md`](docs/README.md).
+Project documentation lives under [`docs/`](docs/README.md). Start with [`docs/README.md`](docs/README.md).
 
 | Read this | For |
 |---|---|
 | [docs/packages/sweatmeter/spec.md](docs/packages/sweatmeter/spec.md) | Purpose, scope, non-goals, public contracts, configuration, acceptance criteria |
 | [docs/packages/sweatmeter/development-plan.md](docs/packages/sweatmeter/development-plan.md) | The phased build plan: goals, work, tests, acceptance criteria per phase |
 | [docs/quickstart.md](docs/quickstart.md) | Snapshot, profile, sampler, deterministic-test, and derived-metric examples |
-| [docs/platform-support.md](docs/platform-support.md) | Exact Linux, NVIDIA, Windows, and macOS support and degradation behaviour |
-| [docs/performance-validation.md](docs/performance-validation.md) | Recorded Phase 4 overhead measurements and methodology |
-| [docs/standards/](docs/standards/) | Coding, testing, security, API, database and packaging standards every phase follows |
-| [docs/adr/](docs/adr/README.md) | The architectural decisions this design rests on |
 
 ## Development
 

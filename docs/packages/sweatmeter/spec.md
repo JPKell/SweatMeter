@@ -1,7 +1,7 @@
 # SweatMeter — Specification
 
 **Type:** Python package · **Import/distribution name:** `sweatmeter` · **Layer:** 3 (capability package)
-**Status:** Specified, not implemented. **Decision record:** [ADR-0021](../../adr/0021-telemetry-collection-strategy.md).
+**Status:** Specified, not implemented. **Decision record:** ADR-0021.
 
 ---
 
@@ -23,7 +23,7 @@ for the whole suite, so a benchmark's VRAM reading and a router's admission chec
 ## 3. Explicit non-goals
 
 * No persistence. Consumers decide what to store and when
-  ([FreeWeight](../../apps/freeweight/spec.md) persists during runs only).
+  (FreeWeight persists during runs only).
 * No HTTP, no UI, no charting.
 * No alerting, thresholds or policy ("is 90 °C too hot?" is a consumer's judgement).
 * No process-level accounting for other processes beyond the current process's own RSS.
@@ -154,7 +154,7 @@ sweatmeter.testing.FaultInjectingReader(wrapped, *, fail: str)
 **No method aggregates across GPUs.** Every derived figure takes a `gpu_index` and describes one
 device; there is no machine-wide VRAM, power or energy total, because weights live on one device and
 a sum describes no hardware that exists
-([ADR-0027](../../adr/0027-multi-gpu-semantics.md)).
+(ADR-0027).
 
 ## 8. Inputs
 
@@ -176,7 +176,7 @@ consumer requests explicitly).
 2. Unavailable is `UNSUPPORTED`, never zero.
 3. Static identity and live utilization never appear in the same object.
 4. The machine fingerprint excludes driver/toolkit versions and storage
-   ([Machine Identity](../../architecture/machine-identity-and-reproducibility.md)).
+   (Machine Identity).
 5. Units are normalized and named: bytes, percent (0–100), °C, watts, MHz, bytes/second.
 6. `energy_joules` is documented as a telemetry-derived **estimate**, never as instrumentation.
 7. The sampler's overhead stays within budget and it always stops cleanly.
@@ -233,7 +233,7 @@ FreeWeight runs a calibration test (sampling on vs off) and records the delta on
 Linux is tier 1. Windows and macOS are tier 3: `HostReader` stubs raise `UnsupportedPlatformError`
 with a message naming what is missing; `GpuReader` still works wherever `nvidia-smi` is on PATH.
 Every parser is tested from fixture text on every platform, so Linux parsing is fully covered in CI
-regardless of the runner. See [Cross-Platform Standards](../../standards/cross-platform-standards.md).
+regardless of the runner. See Cross-Platform Standards.
 
 ## 17. Observability
 
@@ -253,7 +253,7 @@ regardless of the runner. See [Cross-Platform Standards](../../standards/cross-p
 | Fingerprint | Delegated to BaseAiCore; here: correct assembly from reader output, GPU sorting, `UNSUPPORTED` handling |
 | Sampler | Start/stop, interval accuracy, clean shutdown, exception in callback isolated, context manager, `latest()` staleness, no thread leak |
 | Derived | Energy integration against a known series, peak/mean, throttle heuristic, empty window, all-`UNSUPPORTED` window |
-| GPU backend conformance | One suite of protocol invariants — value types, index ordering, unit ranges, honest throttle reporting — run against every `GpuReader`: recorded `nvidia-smi` output, the NVML backend over a fake binding, `NullGpuReader` and `ScriptedGpuReader`; plus an equivalence test pinning both NVIDIA backends to identical output for one device ([ADR-0021](../../adr/0021-telemetry-collection-strategy.md) §7) |
+| GPU backend conformance | One suite of protocol invariants — value types, index ordering, unit ranges, honest throttle reporting — run against every `GpuReader`: recorded `nvidia-smi` output, the NVML backend over a fake binding, `NullGpuReader` and `ScriptedGpuReader`; plus an equivalence test pinning both NVIDIA backends to identical output for one device (ADR-0021 §7) |
 | Platform factory | Every branch including the unsupported-platform error; stubs raise, never return zeros; `NullHostReader` degrades every field to `UNSUPPORTED` with a reason and never to `0` |
 | Test doubles | `ScriptedHostReader`/`ScriptedGpuReader` replay a fixed series deterministically; `FaultInjectingReader` fails the named field and only that field |
 | Performance | Snapshot latency, sampler overhead, memory |

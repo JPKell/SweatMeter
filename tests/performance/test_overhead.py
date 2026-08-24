@@ -118,7 +118,7 @@ def test_snapshot_with_real_nvidia_smi_stays_within_the_hardware_ceiling() -> No
 
     # The ceiling, not the 40 ms target: one snapshot currently spends two `nvidia-smi`
     # invocations (core metrics and throttle reasons), and each costs ~25 ms of process startup
-    # and driver response. See docs/performance-validation.md.
+    # and driver response. See performance validation.
     assert duration <= _GPU_CEILING_SECONDS
 
 

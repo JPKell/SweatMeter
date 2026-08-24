@@ -7,7 +7,7 @@ field instead of risking the command that carries its neighbours. And the driver
 throttle reasons it is *able* to report, so ``throttle_reasons_available`` is answered from the
 device rather than inferred from parseable text.
 
-``pynvml`` is an optional extra ([ADR-0021](../../docs/adr/0021-telemetry-collection-strategy.md)
+``pynvml`` is an optional extra (ADR-0021
 §7), so this module imports it lazily and never at module scope: importing SweatMeter must keep
 working with no NVIDIA tooling installed at all.
 """

@@ -123,5 +123,4 @@ operation without monkeypatching. Scripts raise on exhaustion so stale readings 
 repeated. `NullHostReader` and `NullGpuReader` are importable from `sweatmeter.testing` as well as
 from `sweatmeter`, because they serve both as test doubles and as the production degradation path.
 
-See [platform support](platform-support.md) for the exact implementation matrix and
-[performance validation](performance-validation.md) for measured overhead.
+Support varies by platform and backend; measure overhead in the target environment.

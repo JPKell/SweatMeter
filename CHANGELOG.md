@@ -3,7 +3,7 @@
 All notable changes to `sweatmeter` are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versioning follows
 [Semantic Versioning](https://semver.org/), pre-1.0 per
-`docs/standards/packaging-and-release-standards.md` §3.
+packaging and release standards §3.
 
 ## [Unreleased]
 
@@ -88,7 +88,7 @@ pin `sweatmeter>=0.4,<0.5`.
 - Contract tests moved to `tests/contract/`, matching the testing-standards layout.
 - Refreshed the curated `docs/` snapshot from the central documentation set (adds ADR-0030 and the
   amended BaseAiCore spec, traceability matrix and roadmap).
-- `docs/performance-validation.md` reports both GPU backends measured on real hardware, and the
+- Both GPU backends were measured on real hardware, and the
   evidence behind the split-query design. The previous text stated the GPU was unavailable to the
   validation host, which is no longer true. The `nvidia-smi` path's 40 ms target stays recorded as
   missed (57.6 ms, inside its 120 ms ceiling) rather than quietly rewritten; installing the extra
@@ -126,7 +126,7 @@ collection, deterministic sampling, derived per-device metrics, and publication 
 ### Performance
 - Recorded median no-GPU snapshot latency of 0.241 ms, sampler CPU of 0.242% of one core, 22,551
   bytes peak traced sampler allocation, and 0.000% median synthetic workload degradation on the
-  validation host. See `docs/performance-validation.md` for scope and limitations.
+  validation host; the results are specific to that environment.
 
 ## [0.2.0] — 2026-08-22
 
